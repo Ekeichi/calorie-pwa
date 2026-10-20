@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Calories</title>
+  <!-- PWA + balises iOS -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Calories">
+  <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0d10" media="(prefers-color-scheme: dark)">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <button id="prev" class="nav" aria-label="Jour précédent">‹</button>
+    <h1 id="date"></h1>
+    <button id="next" class="nav" aria-label="Jour suivant">›</button>
+  </header>
+
+  <main>
+    <!-- Résumé du jour -->
+    <section class="card">
+      <div class="totals">
+        <div><strong id="total">0</strong><small>consommées</small></div>
+        <div><strong id="left">0</strong><small id="left-label">restantes</small></div>
+      </div>
+      <div class="bar"><div id="fill"></div></div>
+      <p id="macros" class="muted"></p>
+      <label class="goal">Objectif
+        <input id="goal" type="number" inputmode="numeric" min="0" step="1"> kcal
+      </label>
+    </section>
+
+    <!-- Ajout d'une entrée -->
+    <form id="form" class="card">
+      <input name="name" placeholder="Aliment" required autocomplete="off">
+      <input name="kcal" type="number" inputmode="numeric" min="0" step="1" placeholder="Calories (kcal)" required>
+      <div class="row">
+        <input name="p" type="number" inputmode="decimal" min="0" step="any" placeholder="Prot. (g)">
+        <input name="c" type="number" inputmode="decimal" min="0" step="any" placeholder="Gluc. (g)">
+        <input name="f" type="number" inputmode="decimal" min="0" step="any" placeholder="Lip. (g)">
+      </div>
+      <button type="submit">Ajouter</button>
+    </form>
+
+    <!-- Entrées du jour -->
+    <ul id="list"></ul>
+    <p id="empty" class="muted center">Aucune entrée pour ce jour.</p>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
