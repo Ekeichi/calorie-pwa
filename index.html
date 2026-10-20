@@ -9,83 +9,190 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Calories">
-  <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0b0d10" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0b0d" media="(prefers-color-scheme: dark)">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <button id="prev" class="nav" aria-label="Jour précédent">‹</button>
-    <h1 id="date"></h1>
-    <button id="next" class="nav" aria-label="Jour suivant">›</button>
-  </header>
+  <!-- Icônes SVG au trait (réutilisées via <use>) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-journal" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-add" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol>
+      <symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M8 9v6M11 9v6M14 9v6M17 9v6"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
+      <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+      <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    </defs>
+  </svg>
 
-  <main>
-    <!-- Résumé du jour -->
-    <section class="card">
-      <div class="totals">
-        <div><strong id="total">0</strong><small>consommées</small></div>
-        <div><strong id="left">0</strong><small id="left-label">restantes</small></div>
+  <main id="content">
+    <!-- ===== Écran Journal ===== -->
+    <section id="journal" class="screen" role="tabpanel" aria-labelledby="tab-journal">
+      <header class="screen-head day-nav">
+        <button id="prev" class="icon-btn" aria-label="Jour précédent"><svg class="icon"><use href="#i-left"/></svg></button>
+        <h1 id="date" aria-live="polite"></h1>
+        <button id="next" class="icon-btn" aria-label="Jour suivant"><svg class="icon"><use href="#i-right"/></svg></button>
+      </header>
+      <div class="pad">
+        <section id="summary" class="card summary" aria-label="Résumé du jour">
+          <div class="summary-top">
+            <div class="stat"><span>Objectif</span><strong id="goal-val">0</strong></div>
+            <div class="ring">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="ring-track" cx="60" cy="60" r="52"/>
+                <circle id="ring-fill" class="ring-fill" cx="60" cy="60" r="52"/>
+              </svg>
+              <div class="ring-text"><strong id="left">0</strong><span id="left-label">restantes</span></div>
+            </div>
+            <div class="stat"><span>Consommé</span><strong id="eaten">0</strong></div>
+          </div>
+          <div class="macros">
+            <div class="macro p"><span class="macro-name">Protéines</span><div class="track"><div id="bar-p"></div></div><span id="m-p" class="macro-val"></span></div>
+            <div class="macro c"><span class="macro-name">Glucides</span><div class="track"><div id="bar-c"></div></div><span id="m-c" class="macro-val"></span></div>
+            <div class="macro f"><span class="macro-name">Lipides</span><div class="track"><div id="bar-f"></div></div><span id="m-f" class="macro-val"></span></div>
+          </div>
+        </section>
+        <div id="meals"></div>
       </div>
-      <div class="bar"><div id="fill"></div></div>
-      <p id="macros" class="muted"></p>
-      <label class="goal">Objectif
-        <input id="goal" type="number" inputmode="numeric" min="0" step="1"> kcal
-      </label>
     </section>
 
-    <!-- Scan / saisie d'un code-barres -->
-    <section class="card">
-      <button id="scan-btn" type="button" class="primary">Scanner un code-barres</button>
-      <form id="ean-form" class="row ean">
-        <input id="ean" inputmode="numeric" pattern="\d{8}|\d{12,13}" placeholder="ou tapez le code EAN" required autocomplete="off">
-        <button class="secondary">OK</button>
-      </form>
-      <p id="scan-msg" class="msg" hidden></p>
+    <!-- ===== Écran Ajouter ===== -->
+    <section id="add" class="screen" role="tabpanel" aria-labelledby="tab-add" hidden>
+      <header class="screen-head"><h1>Ajouter</h1><span id="add-day" class="sub"></span></header>
+      <div class="pad">
+        <div class="pills" role="radiogroup" aria-label="Repas">
+          <button role="radio" data-meal="breakfast">Petit-déj</button>
+          <button role="radio" data-meal="lunch">Déjeuner</button>
+          <button role="radio" data-meal="dinner">Dîner</button>
+          <button role="radio" data-meal="snack">Collation</button>
+        </div>
+        <button id="scan-btn" class="btn btn-primary btn-big"><svg class="icon"><use href="#i-scan"/></svg>Scanner un code-barres</button>
+        <form id="ean-form" class="ean">
+          <input id="ean" type="text" inputmode="numeric" pattern="\d{8}|\d{12,13}" placeholder="ou tapez le code EAN" aria-label="Code EAN" required autocomplete="off">
+          <button class="btn btn-secondary">OK</button>
+        </form>
+        <p id="add-msg" class="msg" role="status" hidden></p>
+        <div class="row">
+          <button id="quick-btn" class="btn btn-secondary">Ajout rapide</button>
+          <button id="manual-btn" class="btn btn-secondary">Saisie manuelle</button>
+        </div>
+        <h2 class="section-title">Récents</h2>
+        <ul id="recents" class="card list"></ul>
+        <p id="recents-empty" class="empty">Les aliments ajoutés apparaîtront ici.</p>
+      </div>
     </section>
 
-    <!-- Ajout manuel d'une entrée -->
-    <form id="form" class="card">
-      <input name="name" placeholder="Aliment" required autocomplete="off">
-      <input name="kcal" type="number" inputmode="numeric" min="0" step="1" placeholder="Calories (kcal)" required>
-      <div class="row">
-        <input name="p" type="number" inputmode="decimal" min="0" step="any" placeholder="Prot. (g)">
-        <input name="c" type="number" inputmode="decimal" min="0" step="any" placeholder="Gluc. (g)">
-        <input name="f" type="number" inputmode="decimal" min="0" step="any" placeholder="Lip. (g)">
+    <!-- ===== Écran Réglages ===== -->
+    <section id="settings" class="screen" role="tabpanel" aria-labelledby="tab-settings" hidden>
+      <header class="screen-head"><h1>Réglages</h1></header>
+      <div class="pad">
+        <form id="settings-form" class="card list">
+          <label class="field-row"><span>Objectif</span><input id="s-goal" type="number" inputmode="numeric" min="0" step="1"><em>kcal</em></label>
+        </form>
+        <h2 class="section-title">Objectifs de macros (optionnel)</h2>
+        <div class="card list">
+          <label class="field-row p"><span><i class="dot"></i>Protéines</span><input id="s-p" type="text" inputmode="decimal" placeholder="—"><em>g</em></label>
+          <label class="field-row c"><span><i class="dot"></i>Glucides</span><input id="s-c" type="text" inputmode="decimal" placeholder="—"><em>g</em></label>
+          <label class="field-row f"><span><i class="dot"></i>Lipides</span><input id="s-f" type="text" inputmode="decimal" placeholder="—"><em>g</em></label>
+        </div>
+        <button id="reset" class="btn btn-secondary btn-danger">Réinitialiser les données</button>
+        <p class="empty">Les données restent uniquement sur cet appareil.</p>
       </div>
-      <button type="submit">Ajouter</button>
-    </form>
-
-    <!-- Entrées du jour -->
-    <ul id="list"></ul>
-    <p id="empty" class="muted center">Aucune entrée pour ce jour.</p>
+    </section>
   </main>
 
-  <!-- Écran de scan plein écran -->
+  <!-- ===== Barre d'onglets ===== -->
+  <nav class="tabbar" role="tablist" aria-label="Navigation">
+    <button id="tab-journal" class="tab" role="tab" data-tab="journal" aria-controls="journal" aria-selected="true"><svg class="icon"><use href="#i-journal"/></svg>Journal</button>
+    <button id="tab-add" class="tab" role="tab" data-tab="add" aria-controls="add" aria-selected="false"><svg class="icon"><use href="#i-add"/></svg>Ajouter</button>
+    <button id="tab-settings" class="tab" role="tab" data-tab="settings" aria-controls="settings" aria-selected="false"><svg class="icon"><use href="#i-settings"/></svg>Réglages</button>
+  </nav>
+
+  <!-- ===== Feuille : fiche aliment (ajout ou modification) ===== -->
+  <div id="sheet-food" class="sheet-wrap" hidden>
+    <div class="backdrop"></div>
+    <form id="food-form" class="sheet" role="dialog" aria-modal="true" aria-labelledby="f-name" novalidate>
+      <div class="sheet-head"><div class="grabber"></div><h2 id="f-name"></h2><p id="f-base" class="sub"></p></div>
+      <div class="sheet-body">
+        <label class="field"><span id="f-unit">Quantité (g)</span><input id="f-qty" type="text" inputmode="decimal" autocomplete="off"></label>
+        <p class="calc"><strong id="f-kcal">0</strong> kcal</p>
+        <div id="f-macros" class="chips"></div>
+        <button type="button" id="f-delete" class="btn btn-text btn-danger" hidden>Supprimer cette entrée</button>
+      </div>
+      <div class="sheet-foot"><button id="f-submit" class="btn btn-primary btn-big">Ajouter au journal</button></div>
+    </form>
+  </div>
+
+  <!-- ===== Feuille : ajout rapide ===== -->
+  <div id="sheet-quick" class="sheet-wrap" hidden>
+    <div class="backdrop"></div>
+    <form id="quick-form" class="sheet" role="dialog" aria-modal="true" aria-labelledby="q-title">
+      <div class="sheet-head"><div class="grabber"></div><h2 id="q-title">Ajout rapide</h2></div>
+      <div class="sheet-body">
+        <label class="field"><span>Calories (kcal)</span><input name="kcal" type="number" inputmode="numeric" min="1" step="1" required></label>
+        <label class="field"><span>Nom (optionnel)</span><input name="name" type="text" autocomplete="off" placeholder="Ajout rapide"></label>
+      </div>
+      <div class="sheet-foot"><button class="btn btn-primary btn-big">Ajouter au journal</button></div>
+    </form>
+  </div>
+
+  <!-- ===== Feuille : saisie manuelle ===== -->
+  <div id="sheet-manual" class="sheet-wrap" hidden>
+    <div class="backdrop"></div>
+    <form id="manual-form" class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-title">
+      <div class="sheet-head"><div class="grabber"></div><h2 id="m-title">Saisie manuelle</h2></div>
+      <div class="sheet-body">
+        <p id="m-msg" class="msg" role="status" hidden></p>
+        <label class="field"><span>Nom</span><input name="name" type="text" autocomplete="off" required></label>
+        <label class="field"><span>Calories (kcal)</span><input name="kcal" type="number" inputmode="numeric" min="0" step="1" required></label>
+        <div class="row">
+          <label class="field p"><span><i class="dot"></i>Prot. (g)</span><input name="p" type="text" inputmode="decimal"></label>
+          <label class="field c"><span><i class="dot"></i>Gluc. (g)</span><input name="c" type="text" inputmode="decimal"></label>
+          <label class="field f"><span><i class="dot"></i>Lip. (g)</span><input name="f" type="text" inputmode="decimal"></label>
+        </div>
+      </div>
+      <div class="sheet-foot"><button class="btn btn-primary btn-big">Ajouter au journal</button></div>
+    </form>
+  </div>
+
+  <!-- ===== Écran de scan plein écran ===== -->
   <div id="scanner" hidden>
     <video id="video" playsinline muted autoplay></video>
     <div class="frame"></div>
-    <p id="scan-status"></p>
-    <button id="scan-close" aria-label="Fermer">✕</button>
+    <button id="scan-close" class="icon-btn glass" aria-label="Fermer le scanner"><svg class="icon"><use href="#i-close"/></svg></button>
+    <p id="scan-status" role="status"></p>
+    <button id="scan-manual" class="btn glass">Saisir le code à la main</button>
   </div>
 
-  <!-- Fiche produit : quantité puis ajout -->
-  <dialog id="product">
-    <form method="dialog">
-      <h2 id="p-name"></h2>
-      <p id="p-per100" class="muted"></p>
-      <label>Quantité (g)
-        <input id="p-qty" type="number" inputmode="decimal" min="1" step="any" value="100" required>
-      </label>
-      <p id="p-calc" class="calc"></p>
-      <div class="row">
-        <button value="cancel" formnovalidate class="secondary">Annuler</button>
-        <button value="add" class="primary">Ajouter</button>
-      </div>
-    </form>
-  </dialog>
+  <!-- Toast "Ajouté" -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Gabarits pour les sections de repas et les entrées -->
+  <template id="tpl-meal">
+    <section class="card meal">
+      <header class="meal-head">
+        <h2></h2><span class="meal-kcal"></span>
+        <button class="icon-btn meal-add"><svg class="icon"><use href="#i-plus"/></svg></button>
+      </header>
+      <ul class="entries"></ul>
+      <p class="empty">Rien pour l'instant</p>
+    </section>
+  </template>
+  <template id="tpl-entry">
+    <li class="entry">
+      <button class="entry-del" tabindex="-1"><svg class="icon"><use href="#i-trash"/></svg>Supprimer</button>
+      <button class="entry-main">
+        <span class="entry-text"><span class="entry-name"></span><span class="entry-qty"></span></span>
+        <span class="entry-kcal"></span>
+      </button>
+    </li>
+  </template>
 
   <script src="vendor/barcode-detector.js"></script>
   <script src="app.js"></script>
