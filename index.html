@@ -36,7 +36,17 @@
       </label>
     </section>
 
-    <!-- Ajout d'une entrée -->
+    <!-- Scan / saisie d'un code-barres -->
+    <section class="card">
+      <button id="scan-btn" type="button" class="primary">Scanner un code-barres</button>
+      <form id="ean-form" class="row ean">
+        <input id="ean" inputmode="numeric" pattern="\d{8}|\d{12,13}" placeholder="ou tapez le code EAN" required autocomplete="off">
+        <button class="secondary">OK</button>
+      </form>
+      <p id="scan-msg" class="msg" hidden></p>
+    </section>
+
+    <!-- Ajout manuel d'une entrée -->
     <form id="form" class="card">
       <input name="name" placeholder="Aliment" required autocomplete="off">
       <input name="kcal" type="number" inputmode="numeric" min="0" step="1" placeholder="Calories (kcal)" required>
@@ -53,6 +63,32 @@
     <p id="empty" class="muted center">Aucune entrée pour ce jour.</p>
   </main>
 
+  <!-- Écran de scan plein écran -->
+  <div id="scanner" hidden>
+    <video id="video" playsinline muted autoplay></video>
+    <div class="frame"></div>
+    <p id="scan-status"></p>
+    <button id="scan-close" aria-label="Fermer">✕</button>
+  </div>
+
+  <!-- Fiche produit : quantité puis ajout -->
+  <dialog id="product">
+    <form method="dialog">
+      <h2 id="p-name"></h2>
+      <p id="p-per100" class="muted"></p>
+      <label>Quantité (g)
+        <input id="p-qty" type="number" inputmode="decimal" min="1" step="any" value="100" required>
+      </label>
+      <p id="p-calc" class="calc"></p>
+      <div class="row">
+        <button value="cancel" formnovalidate class="secondary">Annuler</button>
+        <button value="add" class="primary">Ajouter</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="vendor/barcode-detector.js"></script>
   <script src="app.js"></script>
+  <script src="scan.js"></script>
 </body>
 </html>

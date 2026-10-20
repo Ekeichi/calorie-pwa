@@ -73,7 +73,13 @@ function render() {
   $('empty').hidden = entries.length > 0;
 }
 
-// Ajout d'une entrée
+// Ajout d'une entrée au jour affiché (utilisé aussi par scan.js)
+function addEntry(entry) {
+  setEntries([...getEntries(), entry]);
+  render();
+}
+
+// Saisie manuelle
 $('form').addEventListener('submit', (ev) => {
   ev.preventDefault();
   const f = new FormData(ev.target);
@@ -81,9 +87,8 @@ $('form').addEventListener('submit', (ev) => {
   const entry = { name: f.get('name').trim(), kcal: Math.round(num('kcal')) };
   ['p', 'c', 'f'].forEach((k) => { if (num(k)) entry[k] = num(k); });
   if (!entry.name) return;
-  setEntries([...getEntries(), entry]);
   ev.target.reset();
-  render();
+  addEntry(entry);
 });
 
 // Objectif modifiable (sauvegardé à chaque changement)

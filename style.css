@@ -57,10 +57,46 @@ input {
   border: 1px solid var(--border); background: var(--bg); color: var(--text);
 }
 .row { display: flex; gap: 8px; }
-button[type=submit] {
+button[type=submit], .primary, .secondary {
   width: 100%; padding: 12px; border: 0; border-radius: 10px;
   background: var(--accent); color: #fff; font-weight: 600;
 }
+.secondary { background: var(--border); color: var(--text); }
+
+/* Bloc scan */
+.ean { margin-top: 8px; }
+.ean input { flex: 1; margin: 0; }
+.ean button { width: auto; padding: 0 20px; }
+.msg { margin: 8px 0 0; font-size: .9rem; color: var(--danger); }
+
+/* Écran caméra plein écran */
+#scanner { position: fixed; inset: 0; z-index: 10; background: #000; }
+#scanner video { width: 100%; height: 100%; object-fit: cover; }
+#scanner .frame {
+  position: absolute; left: 10%; right: 10%; top: 38%; height: 24%;
+  border: 3px solid rgba(255, 255, 255, .8); border-radius: 12px; transition: border-color .15s;
+}
+#scanner.found .frame { border-color: #22c55e; box-shadow: 0 0 0 100vmax rgba(34, 197, 94, .25); }
+#scan-status {
+  position: absolute; left: 0; right: 0; bottom: calc(32px + env(safe-area-inset-bottom));
+  margin: 0; text-align: center; color: #fff; text-shadow: 0 1px 3px #000;
+}
+#scan-close {
+  position: absolute; top: calc(12px + env(safe-area-inset-top)); right: 16px;
+  width: 44px; height: 44px; border-radius: 50%; border: 0;
+  background: rgba(0, 0, 0, .5); color: #fff; font-size: 1.3rem;
+}
+
+/* Fiche produit */
+dialog {
+  width: min(92vw, 420px); border: 1px solid var(--border); border-radius: 16px;
+  background: var(--card); color: var(--text); padding: 20px;
+}
+dialog::backdrop { background: rgba(0, 0, 0, .5); }
+dialog h2 { font-size: 1.15rem; margin: 0 0 4px; }
+dialog label { display: block; margin-top: 12px; }
+dialog input { margin-top: 4px; }
+.calc { font-weight: 600; text-align: center; }
 
 /* Liste des entrées */
 #list { list-style: none; padding: 0; margin: 0; }
