@@ -110,7 +110,16 @@ render();
 
 // Service worker : mise en cache pour le hors ligne
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js')
-    .then(() => console.log('Service worker enregistré'))
+  // Une nouvelle version vient de prendre le contrôle : recharger pour l'afficher
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController) location.reload();
+  });
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+    .then((reg) => {
+      console.log('Service worker enregistré');
+      // iOS réveille l'app sans la recharger : on vérifie les mises à jour au retour
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update(); });
+    })
     .catch((err) => console.error('Échec du service worker', err));
 }
