@@ -27,6 +27,7 @@
       <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
       <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
       <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+      <symbol id="i-plan" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
       <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
     </defs>
   </svg>
@@ -88,10 +89,28 @@
       </div>
     </section>
 
+    <!-- ===== Écran Mon plan (Zero to Hero) ===== -->
+    <section id="plan" class="screen" role="tabpanel" aria-labelledby="tab-plan" hidden>
+      <header class="screen-head"><h1>Mon plan</h1><span id="plan-sub" class="sub"></span></header>
+      <div class="pad">
+        <div id="plan-error" class="card plan-error" hidden>
+          <p id="plan-error-text"></p>
+          <button id="plan-profile" class="btn btn-primary">Ouvrir mon profil</button>
+        </div>
+        <p id="plan-base" class="empty"></p>
+        <p id="plan-hint" class="msg" role="status" hidden></p>
+        <div id="plan-cards"></div>
+      </div>
+    </section>
+
     <!-- ===== Écran Réglages ===== -->
     <section id="settings" class="screen" role="tabpanel" aria-labelledby="tab-settings" hidden>
       <header class="screen-head"><h1>Réglages</h1></header>
       <div class="pad">
+        <div id="plan-note" class="plan-note" hidden>
+          <p id="plan-note-text"></p>
+          <button id="plan-off" class="btn btn-text">Revenir aux objectifs manuels</button>
+        </div>
         <form id="settings-form" class="card list">
           <label class="field-row"><span>Objectif</span><input id="s-goal" type="number" inputmode="numeric" min="0" step="1"><em>kcal</em></label>
         </form>
@@ -101,6 +120,22 @@
           <label class="field-row c"><span><i class="dot"></i>Glucides</span><input id="s-c" type="text" inputmode="decimal" placeholder="—"><em>g</em></label>
           <label class="field-row f"><span><i class="dot"></i>Lipides</span><input id="s-f" type="text" inputmode="decimal" placeholder="—"><em>g</em></label>
         </div>
+        <h2 class="section-title">Profil et protocole</h2>
+        <form id="profile-form" class="card list">
+          <label class="field-row"><span>Âge</span><input name="age" type="number" inputmode="numeric" min="1" step="1"><em>ans</em></label>
+          <label class="field-row"><span>Taille</span><input name="taille" type="text" inputmode="decimal" placeholder="1,80"><em>m</em></label>
+          <label class="field-row"><span>Poids</span><input name="poids" type="text" inputmode="decimal" placeholder="—"><em>kg</em></label>
+          <label class="field-row"><span>Masse grasse</span><input name="bodyfat" type="text" inputmode="decimal" placeholder="—"><em>%</em></label>
+          <label class="field-row select-row"><span>Protocole</span>
+            <select name="protocole">
+              <option value="1">Prise de muscle propre</option>
+              <option value="2">Recomposition corporelle</option>
+              <option value="3">Créer le déficit parfait</option>
+              <option value="4">Perte de gras progressive</option>
+            </select>
+          </label>
+        </form>
+        <p id="profile-msg" class="msg" role="status" hidden></p>
         <button id="reset" class="btn btn-secondary btn-danger">Réinitialiser les données</button>
         <p class="empty">Les données restent uniquement sur cet appareil.</p>
       </div>
@@ -111,6 +146,7 @@
   <nav class="tabbar" role="tablist" aria-label="Navigation">
     <button id="tab-journal" class="tab" role="tab" data-tab="journal" aria-controls="journal" aria-selected="true"><svg class="icon"><use href="#i-journal"/></svg>Journal</button>
     <button id="tab-add" class="tab" role="tab" data-tab="add" aria-controls="add" aria-selected="false"><svg class="icon"><use href="#i-add"/></svg>Ajouter</button>
+    <button id="tab-plan" class="tab" role="tab" data-tab="plan" aria-controls="plan" aria-selected="false"><svg class="icon"><use href="#i-plan"/></svg>Mon plan</button>
     <button id="tab-settings" class="tab" role="tab" data-tab="settings" aria-controls="settings" aria-selected="false"><svg class="icon"><use href="#i-settings"/></svg>Réglages</button>
   </nav>
 
@@ -194,7 +230,21 @@
     </li>
   </template>
 
+  <template id="tpl-plan">
+    <section class="card plan-card">
+      <header class="plan-head"><h2></h2><span class="badge" hidden>Étape active</span></header>
+      <p class="plan-kcal"><strong></strong> kcal</p>
+      <ul class="plan-macros">
+        <li class="p"><span><i class="dot"></i>Protéines</span><strong></strong></li>
+        <li class="c"><span><i class="dot"></i>Glucides</span><strong></strong></li>
+        <li class="f"><span><i class="dot"></i>Lipides</span><strong></strong></li>
+      </ul>
+      <button class="btn btn-primary btn-big plan-use">Utiliser cette étape</button>
+    </section>
+  </template>
+
   <script src="vendor/barcode-detector.js"></script>
+  <script src="calc.js"></script>
   <script src="app.js"></script>
   <script src="scan.js"></script>
 </body>

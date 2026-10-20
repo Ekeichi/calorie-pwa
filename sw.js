@@ -1,8 +1,8 @@
 // Service worker : cache-first sur tous les fichiers statiques.
 // Changer VERSION à chaque mise à jour des fichiers pour forcer le rafraîchissement.
-const VERSION = 'calories-v4';
+const VERSION = 'calories-v5';
 const FILES = [
-  './', 'index.html', 'style.css', 'app.js', 'scan.js',
+  './', 'index.html', 'style.css', 'app.js', 'scan.js', 'calc.js',
   'manifest.webmanifest', 'icon-192.png', 'icon-512.png',
   'vendor/barcode-detector.js', 'vendor/zxing_reader.wasm', // lib de scan + binaire wasm
 ];

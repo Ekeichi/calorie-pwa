@@ -7,6 +7,8 @@
 //                    unit 'portion' -> base = valeurs pour 1 portion, qty en portions
 //   cal:recents      20 derniers aliments (même forme, sans id ni meal)
 //   cal:products     cache des produits scannés : code -> { name, kcal, p, c, f } pour 100 g
+//   cal:profile      profil Zero to Hero { age, taille, poids, bodyfat, protocole }
+//   cal:stage        étape active du plan (0, 1 ou 2), ou null = objectifs manuels
 const $ = (id) => document.getElementById(id);
 const MEALS = { breakfast: 'Petit-déjeuner', lunch: 'Déjeuner', dinner: 'Dîner', snack: 'Collations' };
 const RING = 2 * Math.PI * 52; // circonférence de l'anneau (r = 52)
@@ -232,6 +234,7 @@ function showTab(name) {
   $('content').scrollTop = 0;
   if (name === 'journal') renderJournal();
   if (name === 'add') renderAdd();
+  if (name === 'plan') renderPlan();
   if (name === 'settings') renderSettings();
 }
 document.querySelectorAll('[role=tab]').forEach((t) => {
@@ -369,12 +372,102 @@ $('manual-form').addEventListener('submit', (ev) => {
   });
 });
 
+// ---------- Écran Mon plan (calculs dans calc.js) ----------
+const getProfile = () => load('cal:profile', { protocole: 1 });
+const PROFILE_FIELDS = ['age', 'taille', 'poids', 'bodyfat'];
+
+// Étape active du plan si elle existe pour le protocole et que le profil est complet
+function activeStage() {
+  const index = load('cal:stage', null);
+  if (index === null) return null;
+  return ZeroToHero.compute(getProfile()).stages?.find((s) => s.index === index) || null;
+}
+
+// Recopie l'étape active dans les objectifs du Journal (arrondis à l'affichage seulement)
+function syncPlan() {
+  const s = activeStage();
+  if (!s) return;
+  save('cal:goal', Math.round(s.kcal));
+  save('cal:macros', { p: Math.round(s.p), c: Math.max(0, Math.round(s.c)), f: Math.round(s.f) });
+}
+
+function renderPlan() {
+  const profile = getProfile();
+  const plan = ZeroToHero.compute(profile);
+  const active = activeStage();
+  $('plan-sub').textContent = ZeroToHero.PROTOCOLS[profile.protocole]?.name || '';
+  $('plan-error').hidden = !plan.error;
+  $('plan-error-text').textContent = plan.error || '';
+  $('plan-base').textContent = plan.error ? ''
+    : `Maintenance ${Math.round(plan.maintenance)} kcal · BMR ${Math.round(plan.bmr)} kcal · Masse maigre ${fmt(plan.masseMaigre)} kg`;
+  // Étape choisie absente de ce protocole : on le signale, sans en choisir une autre
+  const stored = load('cal:stage', null);
+  $('plan-hint').hidden = plan.error || stored === null || !!active;
+  $('plan-hint').textContent = `Ton étape choisie (${ZeroToHero.STAGES[stored]}) n'existe pas dans ce protocole. Choisis une étape ci-dessous.`;
+  const box = $('plan-cards');
+  box.replaceChildren();
+  if (plan.error) return;
+  plan.stages.forEach((s) => box.append(planCard(s, active?.index === s.index)));
+  box.append(planCard({ name: 'Maintien', ...plan.maintien }, false, true));
+}
+
+function planCard(s, isActive, isRef = false) {
+  const card = $('tpl-plan').content.firstElementChild.cloneNode(true);
+  card.querySelector('h2').textContent = s.name + (isRef ? ' (référence)' : '');
+  card.querySelector('.plan-kcal strong').textContent = Math.round(s.kcal);
+  ['p', 'c', 'f'].forEach((k) => { card.querySelector(`.${k} strong`).textContent = Math.round(s[k]) + ' g'; });
+  card.classList.toggle('active', isActive);
+  card.classList.toggle('ref', isRef);
+  card.querySelector('.badge').hidden = !isActive;
+  const use = card.querySelector('.plan-use');
+  use.hidden = isActive || isRef;
+  use.setAttribute('aria-label', 'Utiliser ' + s.name);
+  use.onclick = () => {
+    save('cal:stage', s.index); // seul endroit où l'étape change : jamais automatique
+    syncPlan();
+    renderPlan();
+    toast('Objectif mis à jour');
+  };
+  return card;
+}
+$('plan-profile').onclick = () => {
+  showTab('settings');
+  $('profile-form').scrollIntoView({ block: 'center' });
+};
+
 // ---------- Écran Réglages ----------
 function renderSettings() {
   const mg = load('cal:macros', {});
   $('s-goal').value = load('cal:goal', 2000);
   ['p', 'c', 'f'].forEach((k) => { $('s-' + k).value = mg[k] ? String(mg[k]).replace('.', ',') : ''; });
+
+  // Objectifs pilotés par le plan : champs verrouillés
+  const s = activeStage();
+  $('plan-note').hidden = !s;
+  $('plan-note-text').textContent = s ? `Objectifs définis par Mon plan (${s.name}).` : '';
+  ['s-goal', 's-p', 's-c', 's-f'].forEach((id) => { $(id).disabled = !!s; });
+
+  // Profil
+  const profile = getProfile();
+  const f = $('profile-form').elements;
+  PROFILE_FIELDS.forEach((k) => { f[k].value = profile[k] == null ? '' : String(profile[k]).replace('.', ','); });
+  f.protocole.value = profile.protocole || 1;
+  const err = ZeroToHero.validate(profile);
+  $('profile-msg').textContent = err || '';
+  $('profile-msg').hidden = !err;
 }
+
+// Profil modifié : recalcul + mise à jour de l'objectif, sans changer d'étape
+$('profile-form').addEventListener('change', () => {
+  const f = $('profile-form').elements;
+  const profile = { protocole: Number(f.protocole.value) };
+  PROFILE_FIELDS.forEach((k) => { profile[k] = num(f[k].value) ?? null; });
+  save('cal:profile', profile);
+  syncPlan();
+  renderSettings();
+});
+$('profile-form').addEventListener('submit', (ev) => ev.preventDefault());
+$('plan-off').onclick = () => { save('cal:stage', null); renderSettings(); };
 $('s-goal').addEventListener('change', (ev) => {
   const v = parseInt(ev.target.value, 10);
   if (v >= 0) save('cal:goal', v);

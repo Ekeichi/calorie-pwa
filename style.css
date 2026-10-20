@@ -133,6 +133,11 @@ input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 .field-row span { flex: 1; }
 .field-row input { width: 96px; text-align: right; }
 .field-row em { font-style: normal; color: var(--text-2); width: 32px; }
+.select-row span { flex: none; }
+select {
+  flex: 1; min-width: 0; min-height: 44px; padding: 0 var(--s2); font: 16px system-ui, -apple-system, sans-serif;
+  border: 1px solid var(--border); border-radius: var(--r-btn); background: var(--bg); color: var(--text); text-align: right;
+}
 
 /* Feuilles modales (bottom sheets) */
 .sheet-wrap { position: fixed; inset: 0; z-index: 20; }
@@ -238,6 +243,22 @@ input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 .rec > span:first-child { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .rec-sub { font-size: .85rem; color: var(--text-2); }
 .rec .icon { color: var(--accent); }
+
+/* --- Mon plan --- */
+.plan-card { border: 2px solid transparent; }
+.plan-card.active { border-color: var(--accent); }
+.plan-card.ref { background: none; border: 1px dashed var(--border); }
+.plan-head { display: flex; align-items: center; gap: var(--s2); }
+.plan-head h2 { font-size: 1.05rem; flex: 1; }
+.badge { background: var(--accent); color: var(--on-accent); font-size: .75rem; font-weight: 700; border-radius: 999px; padding: 2px var(--s2); }
+.plan-kcal { color: var(--text-2); margin: var(--s2) 0; }
+.plan-kcal strong { font-size: 2rem; color: var(--text); }
+.plan-macros { list-style: none; margin: 0 0 var(--s3); padding: 0; }
+.plan-macros li { display: flex; justify-content: space-between; padding: var(--s1) 0; }
+.plan-macros strong { font-variant-numeric: tabular-nums; }
+.plan-error { text-align: center; display: grid; gap: var(--s3); font-weight: 600; }
+.plan-note { background: var(--surface); border-radius: var(--r-card); padding: var(--s3) var(--s4) 0; margin-bottom: var(--s3); color: var(--text-2); font-size: .9rem; }
+input:disabled { opacity: .5; }
 
 /* --- Scan plein écran --- */
 #scanner { position: fixed; inset: 0; z-index: 40; background: #000; color: #fff; }
